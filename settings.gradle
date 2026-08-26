@@ -1,0 +1,14 @@
+// Desktop-only settings for the Flatpak / Linux / non-Android builds. Includes
+// just the JVM modules the desktop app needs, so Gradle never configures the
+// Android modules (which require the Android SDK). Use with:
+//   ./gradlew --settings-file settings-desktop.gradle :zerion-desktop-ui:createDistributable
+include ':zerion-core-api'
+include ':zerion-wire'
+include ':zerion-core'
+include ':zerion-core-jvm'
+include ':i2p-embedded'
+include ':zerion-app-api'
+include ':zerion-app'
+include ':zerion-desktop'
+include ':zerion-desktop-ui'
+include ':opus-jvm'

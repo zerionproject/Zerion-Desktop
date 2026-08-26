@@ -1,0 +1,11 @@
+apply plugin: 'java-library'
+
+// Vendored pure-Java Opus codec (Concentus). See PROVENANCE.md for the exact
+// upstream source and commit. No external dependencies, no native code, no
+// network access; it is a self-contained audio codec used only to encode and
+// decode the Opus payload of group voice messages.
+java {
+	toolchain {
+		languageVersion = JavaLanguageVersion.of(21)
+	}
+}

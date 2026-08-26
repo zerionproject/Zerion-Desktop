@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component type="desktop-application">
+  <id>chat.zerion.Zerion</id>
+  <metadata_license>CC0-1.0</metadata_license>
+  <project_license>GPL-3.0-or-later</project_license>
+  <name>Zerion</name>
+  <developer_name>Zerion Project</developer_name>
+  <summary>Post-quantum secure messenger over Tor</summary>
+  <description>
+    <p>
+      Zerion is a private messenger that routes all traffic over the Tor
+      network and protects conversations with post-quantum cryptography.
+      It has no central servers and collects no metadata.
+    </p>
+  </description>
+  <launchable type="desktop-id">chat.zerion.Zerion.desktop</launchable>
+  <categories>
+    <category>Network</category>
+    <category>InstantMessaging</category>
+  </categories>
+  <url type="homepage">https://zerion.chat</url>
+  <content_rating type="oars-1.1"/>
+  <releases>
+    <release version="1.0.0" date="2026-08-25"/>
+  </releases>
+</component>

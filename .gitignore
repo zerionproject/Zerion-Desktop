@@ -1,0 +1,24 @@
+# Build output
+build/
+*/build/
+.gradle/
+.kotlin/
+
+# IDE
+.idea/
+*.iml
+.vscode/
+*.swp
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Local Gradle
+local.properties
+
+# Flatpak build state
+.flatpak-builder/
+
+# Release working files
+release-artifacts/

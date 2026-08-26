@@ -1,0 +1,66 @@
+// Top-level build file where you can add configuration options common to all sub-projects/modules.
+
+allprojects {
+	repositories {
+		mavenCentral()
+		google()
+		maven { url 'https://maven.pkg.jetbrains.space/public/p/compose/dev' }
+	}
+	plugins.withType(JavaBasePlugin) {
+		java {
+			toolchain {
+				languageVersion = JavaLanguageVersion.of(21)
+			}
+		}
+	}
+	afterEvaluate {
+		tasks.withType(Test) {
+			outputs.upToDateWhen { System.getenv("OPTIONAL_TESTS") == null }
+			systemProperty 'java.security.egd', System.getProperty('java.security.egd')
+		}
+	}
+	dependencyLocking {
+		lockAllConfigurations()
+		lockMode = LockMode.LENIENT
+	}
+}
+
+buildscript {
+	repositories {
+		google()
+		maven {
+			url 'https://plugins.gradle.org/m2/'
+		}
+	}
+
+	ext {
+		kotlin_version = '1.9.25'
+		dagger_version = "2.51.1"
+		okhttp_version = "4.12.0"
+		jackson_version = "2.15.3"
+		tor_version = "0.4.9.9"
+		lyrebird_version = "0.6.2"
+		jsoup_version = '1.18.3'
+		bouncy_castle_version = '1.84'
+		junit_version = "4.13.2"
+		jmock_version = '2.12.0'
+		mockwebserver_version = '4.10.0'
+		onionwrapper_version = '0.1.4'
+	}
+	dependencies {
+		classpath 'com.android.tools.build:gradle:8.13.0'
+		classpath 'ru.vyarus:gradle-animalsniffer-plugin:2.0.1'
+		// classpath files('libs/gradle-witness.jar')
+		classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
+		classpath 'com.gradleup.shadow:shadow-gradle-plugin:8.3.6'
+		classpath 'org.jetbrains.compose:compose-gradle-plugin:1.6.11'
+	}
+}
+
+// Dependency vulnerability scanning is performed via the standalone OWASP
+// dependency-check CLI rather than the Gradle plugin (the plugin would add
+// dozens of transitive deps that are incompatible with our Gradle dependency
+// verification metadata). See scripts/run-dependency-check.sh for the
+// recommended CI invocation, and config/owasp-suppressions.xml for accepted
+// false-positives. The CLI is run against the assembled APK / module JARs
+// and reports HTML + JSON to build/reports/dependency-check/.

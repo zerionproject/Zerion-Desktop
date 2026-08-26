@@ -1,0 +1,24 @@
+# Normalize text to LF in the repository
+* text=auto eol=lf
+
+# Windows batch scripts must be CRLF
+*.bat text eol=crlf
+*.cmd text eol=crlf
+
+# Shell scripts and the Gradle wrapper must be LF
+gradlew text eol=lf
+*.sh text eol=lf
+
+# Flatpak packaging files must be LF
+*.desktop text eol=lf
+*.metainfo.xml text eol=lf
+*.yml text eol=lf
+zerion-launcher text eol=lf
+
+# Binary assets
+*.png binary
+*.jar binary
+*.gpg binary
+*.keys binary
+monero-wallet-rpc binary
+monero-wallet-rpc.exe binary

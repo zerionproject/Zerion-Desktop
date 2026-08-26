@@ -1,0 +1,55 @@
+app-id: chat.zerion.Zerion
+runtime: org.freedesktop.Platform
+runtime-version: '23.08'
+sdk: org.freedesktop.Sdk
+sdk-extensions:
+  - org.freedesktop.Sdk.Extension.openjdk21
+command: zerion
+
+finish-args:
+  # Tor needs the network; Zerion speaks only over Tor (no LAN discovery).
+  - --share=network
+  # Desktop UI (Compose renders through Skia -> OpenGL).
+  - --socket=wayland
+  - --socket=fallback-x11
+  - --share=ipc
+  - --device=dri
+  # Voice calls and voice messages record/play through the audio socket.
+  - --socket=pulseaudio
+  # Persist the account/DB under ~/.var/app/chat.zerion.Zerion/data.
+  - --persist=.
+
+modules:
+  - name: zerion
+    buildsystem: simple
+    # onionwrapper extracts + runs the bundled Tor binary from the app data dir,
+    # and Gradle needs to fetch dependencies, so this module builds with network.
+    # For a Flathub submission this must be converted to an offline build with a
+    # vendored Gradle dependency set (see README).
+    build-options:
+      env:
+        JAVA_HOME: /usr/lib/sdk/openjdk21/jvm/openjdk-21
+      build-args:
+        - --share=network
+    build-commands:
+      - . /usr/lib/sdk/openjdk21/enable.sh && ./gradlew --no-daemon
+        --settings-file settings-desktop.gradle
+        :zerion-desktop-ui:createDistributable
+        --dependency-verification lenient
+      # The Compose app image (bundled jlink runtime + app jars incl. tor-linux)
+      # lands in build/compose/binaries/main/app/Zerion.
+      - cp -r zerion-desktop-ui/build/compose/binaries/main/app/Zerion /app/zerion
+      # /app is read-only at runtime, so the bundled Monero binary must be made
+      # executable at build time (its runtime setExecutable fallback can't work).
+      - chmod 0755 /app/zerion/lib/app/resources/monero/monero-wallet-rpc
+      - install -Dm755 packaging/flatpak/zerion-launcher /app/bin/zerion
+      - install -Dm644 packaging/flatpak/chat.zerion.Zerion.desktop
+        /app/share/applications/chat.zerion.Zerion.desktop
+      - install -Dm644 packaging/flatpak/chat.zerion.Zerion.metainfo.xml
+        /app/share/metainfo/chat.zerion.Zerion.metainfo.xml
+      - install -Dm644 packaging/flatpak/icons/256/chat.zerion.Zerion.png
+        /app/share/icons/hicolor/256x256/apps/chat.zerion.Zerion.png
+    sources:
+      # Self-hosted build: point flatpak-builder at this repository checkout.
+      - type: dir
+        path: ../..

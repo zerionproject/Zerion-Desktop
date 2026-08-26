@@ -1,0 +1,4 @@
+*.desktop text eol=lf
+*.metainfo.xml text eol=lf
+*.yml text eol=lf
+zerion-launcher text eol=lf

@@ -1,0 +1,28 @@
+// Zerion desktop platform bindings (JVM twin of :zerion-core-android).
+// See docs/DESKTOP_PORT.md. Builds on a networked machine; onionwrapper-java
+// and any not-yet-cached deps resolve there.
+apply plugin: 'java-library'
+apply plugin: 'idea'
+apply from: '../dagger.gradle'
+
+dependencies {
+	api project(':zerion-core-api')
+	api project(':zerion-core')
+
+	annotationProcessor "com.google.dagger:dagger-compiler:$dagger_version"
+
+	// Encrypted HSQLDB backend is provided by :zerion-core (DatabaseModule ->
+	// HyperSqlDatabase); the driver is needed on the runtime classpath.
+	runtimeOnly 'org.hsqldb:hsqldb:2.7.4'
+
+	// TODO(Phase 1): desktop Tor via
+	//   implementation "org.briarproject:onionwrapper-java:$onionwrapper_version"
+	// plus the Circumvention/Dns/Socks modules; omitted from Phase 0 so the
+	// headless boot compiles/runs without Tor.
+
+	// TODO(Phase 1): JVM system bindings (JavaSystemModule, JavaNetworkModule,
+	// JavaBatteryModule, JavaTaskSchedulerModule, JavaWakeLockModule,
+	// JavaWakefulIoExecutorModule) recreated from Briar bramble-java, plus a
+	// desktop DatabaseConfig + file-based DB-key/settings store, gathered into a
+	// BrambleJavaModule that :zerion-desktop's Dagger component includes.
+}

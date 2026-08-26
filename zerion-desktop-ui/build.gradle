@@ -1,0 +1,216 @@
+apply plugin: 'org.jetbrains.kotlin.jvm'
+apply plugin: 'org.jetbrains.compose'
+
+compose {
+	kotlinCompilerPlugin.set('androidx.compose.compiler:compiler:1.5.15')
+}
+
+compose.desktop {
+	application {
+		mainClass = 'chat.zerion.desktop.ui.MainKt'
+		nativeDistributions {
+			appResourcesRootDir.set(project.file('appResources'))
+			targetFormats(
+					org.jetbrains.compose.desktop.application.dsl.TargetFormat.Msi,
+					org.jetbrains.compose.desktop.application.dsl.TargetFormat.Dmg,
+					org.jetbrains.compose.desktop.application.dsl.TargetFormat.Deb)
+			packageName = 'Zerion'
+			packageVersion = '1.0.0'
+			windows {
+				upgradeUuid = '5f9d1a3e-7b62-4c8a-9e21-3a6d0b4f81c7'
+				menuGroup = 'Zerion'
+			}
+			// HSQLDB needs java.sql (+ java.naming); crypto/TLS needs the JCE
+			// providers. These classpath jars aren't modules, so jlink can't
+			// infer them - list them explicitly for the bundled runtime.
+			modules('java.sql', 'java.naming', 'java.management',
+					'jdk.crypto.ec', 'jdk.crypto.cryptoki', 'jdk.unsupported',
+					'java.xml', 'java.logging')
+		}
+	}
+}
+
+dependencies {
+	implementation project(':zerion-desktop')
+	implementation project(':zerion-core-api')
+	implementation project(':zerion-core')
+	implementation project(':zerion-app-api')
+	implementation project(':zerion-app')
+
+	implementation compose.desktop.currentOs
+	implementation compose.material3
+	implementation compose.materialIconsExtended
+	implementation "org.jetbrains.kotlinx:kotlinx-coroutines-swing:1.8.0"
+
+	// QR codes for donation addresses (pure-JVM).
+	implementation "com.google.zxing:core:3.5.3"
+
+	// Vault: Argon2id KDF (BouncyCastle) + Windows DPAPI machine-binding (JNA).
+	implementation "org.bouncycastle:bcprov-jdk15to18:1.84"
+	implementation "net.java.dev.jna:jna:5.13.0"
+	implementation "net.java.dev.jna:jna-platform:5.13.0"
+
+	// Ethereum wallet crypto (BIP39/32/44, secp256k1 signing, RLP, EIP-155).
+	// BouncyCastle excluded so we reuse the app's single BC provider above and
+	// avoid two conflicting bcprov jars on the classpath.
+	implementation("org.web3j:crypto:4.9.8") {
+		exclude group: "org.bouncycastle"
+	}
+
+	// Wallet RPC over Tor: OkHttp does HTTPS-over-SOCKS with remote DNS.
+	implementation "com.squareup.okhttp3:okhttp:4.12.0"
+
+	// Bitcoin: HD keys (BIP84 native segwit), address encoding, tx signing.
+	// BouncyCastle excluded to reuse the app's single BC provider.
+	implementation("org.bitcoinj:bitcoinj-core:0.16.3") {
+		exclude group: "org.bouncycastle"
+	}
+
+	// Metadata stripping for document/video attachments (pure-JVM).
+	implementation "org.apache.pdfbox:pdfbox:2.0.31"
+	implementation "org.mp4parser:isoparser:1.9.56"
+	implementation "org.mp4parser:muxer:1.9.56"
+
+	// Group voice messages: Ogg/Opus. The Opus codec is the vendored pure-Java
+	// Concentus (see opus-jvm/PROVENANCE.md); the Ogg container is gagravarr's
+	// vorbis-java (pure-JVM, no transitive dependencies). No native code.
+	implementation project(':opus-jvm')
+	implementation "org.gagravarr:vorbis-java-core:0.8"
+
+	testImplementation "junit:junit:4.13.2"
+}
+
+test {
+	useJUnit()
+}
+
+// Supply-chain gate: fail the build if a bundled Monero binary does not match
+// its pinned SHA-256 (verified against the official getmonero.org release), so a
+// tampered or substituted fund-signing binary can never be packaged.
+def pinnedMoneroHashes = [
+	// Monero v0.18.5.1 'Fluorine Fermi', verified against the official
+	// getmonero.org release hashes before bundling.
+	'appResources/windows-x64/monero/monero-wallet-rpc.exe':
+		'f79594585ad0e094aa104c1aaa246ad5605ad256989f086712f7e9e91cf6ac1d',
+	'appResources/linux-x64/monero/monero-wallet-rpc':
+		'c1e3aff7c72837e6f29045c439b772a82b5cd7324c8b831fa825a6ce2019a656',
+	// Add macos-x64 / macos-arm64 binaries with their verified hashes here
+	// before packaging those platforms.
+]
+
+task verifyMoneroBinaries {
+	doLast {
+		def md = java.security.MessageDigest.getInstance('SHA-256')
+		pinnedMoneroHashes.each { path, expected ->
+			def f = file(path)
+			if (!f.exists()) {
+				logger.warn("Monero binary absent (Monero disabled for this build): $path")
+				return
+			}
+			md.reset()
+			f.eachByte(1 << 16) { buf, len -> md.update(buf, 0, len) }
+			def actual = md.digest().collect { String.format('%02x', it) }.join()
+			if (actual != expected) {
+				throw new GradleException(
+					"Supply-chain check FAILED for $path\n  expected $expected\n  got      $actual\n" +
+					"Refusing to package an unverified Monero binary.")
+			}
+			logger.lifecycle("Verified bundled Monero binary: $path")
+		}
+	}
+}
+
+// Release gate: this build ships no asset-swap functionality. Fail the build if
+// swap identifiers reappear in the wallet sources, so no code path capable of
+// initiating a swap or contacting a swap gateway can be reintroduced by mistake.
+def forbiddenSwapTokens = [
+	'ThorChain', 'thornode', 'thorchain', 'midgard', 'ninerealms',
+	'inbound_addresses', 'depositWithExpiry', 'chainflip', 'jupiter',
+	'executeSwap', 'fetchSwapQuote', 'SwapQuote', 'SwapDialog', 'doSwapFrom',
+]
+
+task verifyNoSwapCode {
+	doLast {
+		def offenders = []
+		def trees = [
+			fileTree(dir: 'src/main', include: '**/*.kt'),
+			fileTree(dir: 'src/main', include: '**/*.java'),
+			fileTree(dir: '../zerion-desktop/src/main', include: '**/*.java'),
+		]
+		trees.each { tree -> tree.each { f ->
+			def text = f.getText('UTF-8').toLowerCase()
+			forbiddenSwapTokens.each { tok ->
+				if (text.contains(tok.toLowerCase())) offenders << "${f.path}: $tok"
+			}
+		} }
+		if (!offenders.isEmpty()) {
+			throw new GradleException(
+				"Swap code detected in the desktop wallet, but this build must ship none:\n  " +
+				offenders.join('\n  ') + "\nRemove the swap code or its identifiers before packaging.")
+		}
+		logger.lifecycle("Verified: no asset-swap code paths present in the wallet.")
+	}
+}
+
+def forbiddenLogTokens = [
+	'System.out', 'System.err', 'printStackTrace', '.println(', '.printf(',
+	'org.slf4j', 'Timber.', 'android.util.Log',
+]
+
+task verifyNoLogging {
+	doLast {
+		def offenders = []
+		def trees = [
+			fileTree(dir: 'src/main', include: '**/*.kt'),
+			fileTree(dir: 'src/main', include: '**/*.java'),
+			fileTree(dir: '../zerion-desktop/src/main', include: '**/*.java'),
+			fileTree(dir: '../opus-jvm/src/main', include: '**/*.java'),
+		]
+		trees.each { tree -> tree.each { f ->
+			def text = f.getText('UTF-8')
+			forbiddenLogTokens.each { tok ->
+				if (text.contains(tok)) offenders << "${f.path}: ${tok}"
+			}
+		} }
+		if (!offenders.isEmpty()) {
+			throw new GradleException(
+				"Application logging detected, but production builds must ship none:\n  " +
+				offenders.join('\n  ') + "\nRemove the logging call before packaging.")
+		}
+		logger.lifecycle("Verified: no application logging in the production source.")
+	}
+}
+
+def pinnedGagravarrSha256 =
+	'879bb0c8923fea686609e207fd9050ab246e001868341c725929405e755cf68e'
+
+task verifyOpusDeps {
+	doLast {
+		def artifact = configurations.runtimeClasspath.resolvedConfiguration
+				.resolvedArtifacts.find { it.moduleVersion.id.name == 'vorbis-java-core' }
+		if (artifact == null) {
+			throw new GradleException('The Ogg container dependency is missing.')
+		}
+		def md = java.security.MessageDigest.getInstance('SHA-256')
+		artifact.file.eachByte(1 << 16) { buf, len -> md.update(buf, 0, len) }
+		def actual = md.digest().collect { String.format('%02x', it) }.join()
+		if (actual != pinnedGagravarrSha256) {
+			throw new GradleException(
+				"Ogg dependency integrity check FAILED for ${artifact.file.name}\n" +
+				"  expected ${pinnedGagravarrSha256}\n  got      ${actual}")
+		}
+		logger.lifecycle("Verified Ogg container dependency: ${artifact.file.name}")
+	}
+}
+
+tasks.matching { it.name == 'compileKotlin' }.all {
+	it.finalizedBy verifyNoSwapCode
+	it.finalizedBy verifyNoLogging
+}
+
+tasks.matching { it.name == 'createDistributable' || it.name == 'packageDistributionForCurrentOS' }.all {
+	it.dependsOn verifyMoneroBinaries
+	it.dependsOn verifyNoSwapCode
+	it.dependsOn verifyNoLogging
+	it.dependsOn verifyOpusDeps
+}

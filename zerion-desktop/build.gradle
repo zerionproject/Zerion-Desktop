@@ -1,0 +1,37 @@
+apply plugin: 'java-library'
+apply plugin: 'idea'
+apply from: '../dagger.gradle'
+
+dependencies {
+	implementation project(':zerion-core-api')
+	implementation project(':zerion-core')
+	implementation project(':zerion-core-jvm')
+	implementation project(':zerion-app-api')
+	implementation project(':zerion-app')
+	implementation project(path: ':i2p-embedded', configuration: 'shadow')
+
+	implementation "org.briarproject:onionwrapper-java:$onionwrapper_version"
+	implementation "com.squareup.okhttp3:okhttp:$okhttp_version"
+
+	implementation "net.java.dev.jna:jna:5.13.0"
+	implementation "net.java.dev.jna:jna-platform:5.13.0"
+
+	annotationProcessor "com.google.dagger:dagger-compiler:$dagger_version"
+
+	testImplementation "junit:junit:4.13.2"
+	testImplementation project(':zerion-core-jvm')
+
+	runtimeOnly 'org.hsqldb:hsqldb:2.7.4'
+
+	def osName = System.getProperty('os.name').toLowerCase()
+	if (osName.contains('win')) {
+		runtimeOnly "org.briarproject:tor-windows:$tor_version"
+		runtimeOnly "org.briarproject:lyrebird-windows:$lyrebird_version"
+	} else if (osName.contains('mac')) {
+		runtimeOnly "org.briarproject:tor-macos:$tor_version"
+		runtimeOnly "org.briarproject:lyrebird-macos:$lyrebird_version"
+	} else {
+		runtimeOnly "org.briarproject:tor-linux:$tor_version"
+		runtimeOnly "org.briarproject:lyrebird-linux:$lyrebird_version"
+	}
+}

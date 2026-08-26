@@ -1,0 +1,11 @@
+[Desktop Entry]
+Type=Application
+Name=Zerion
+GenericName=Secure Messenger
+Comment=Post-quantum secure messenger over Tor
+Exec=zerion
+Icon=chat.zerion.Zerion
+Terminal=false
+Categories=Network;InstantMessaging;
+Keywords=chat;messenger;tor;private;encrypted;
+StartupWMClass=chat.zerion.Zerion

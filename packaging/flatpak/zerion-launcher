@@ -1,0 +1,6 @@
+#!/bin/sh
+# Launch the bundled Compose desktop app image. Its jlink runtime is
+# self-contained under /app/zerion; the app data (account, encrypted DB, the
+# extracted Tor binary) lives under the Flatpak per-app dir via XDG_DATA_HOME.
+export XDG_DATA_HOME="${XDG_DATA_HOME:-$HOME/.local/share}"
+exec /app/zerion/bin/Zerion "$@"
