@@ -155,6 +155,30 @@ See [CONTRIBUTING.md](CONTRIBUTING.md).
 Please do not open a public issue for a security vulnerability. Follow the private
 disclosure process in [SECURITY.md](SECURITY.md).
 
+## Support Zerion
+
+Zerion is free and open-source software. If you would like to support continued
+development, security reviews, audits, and infrastructure-independent releases,
+you can sponsor the project through GitHub Sponsors or donate directly.
+
+### Bitcoin (BTC)
+
+`bc1q5hfmyzkadwww9r96sff2ew36ctksmyapucx4kq`
+
+### Monero (XMR)
+
+`89GAQXYpdb13ReGi1c86PrFqxheEBfoB3ekoSL1AWUcV9DfH9PKnfaRRmoispTUSymKK3ykPK4tdYX1uiLxTNjPC8eGX9V4`
+
+### Ethereum / USDT (ERC-20)
+
+`0x8F639ec074a4d89546e61bDd84F081EE61E1FCF6`
+
+USDT sent to this address must be **ERC-20 on the Ethereum network only**. Do not
+send TRC-20, BEP-20, or tokens on any other network to this address.
+
+Please verify the network before sending. Cryptocurrency transactions are
+irreversible.
+
 ## License
 
 Zerion Desktop is free software under the **GNU General Public License v3.0**. See
