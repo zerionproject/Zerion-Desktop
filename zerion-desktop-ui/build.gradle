@@ -94,6 +94,8 @@ def pinnedMoneroHashes = [
 		'f79594585ad0e094aa104c1aaa246ad5605ad256989f086712f7e9e91cf6ac1d',
 	'appResources/linux-x64/monero/monero-wallet-rpc':
 		'c1e3aff7c72837e6f29045c439b772a82b5cd7324c8b831fa825a6ce2019a656',
+	'appResources/linux-arm64/monero/monero-wallet-rpc':
+		'75e254b8ebd94d1af4a3df1661135347ee61854efec73c197e8aca0ba7a48dbf',
 	// Add macos-x64 / macos-arm64 binaries with their verified hashes here
 	// before packaging those platforms.
 ]
