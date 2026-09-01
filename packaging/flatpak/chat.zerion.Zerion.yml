@@ -33,7 +33,6 @@ modules:
         - --share=network
     build-commands:
       - . /usr/lib/sdk/openjdk21/enable.sh && ./gradlew --no-daemon
-        --settings-file settings-desktop.gradle
         :zerion-desktop-ui:createDistributable
         --dependency-verification lenient
       # The Compose app image (bundled jlink runtime + app jars incl. tor-linux)

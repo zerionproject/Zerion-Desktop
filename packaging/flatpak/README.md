@@ -18,6 +18,40 @@ repo checkout two levels up) and installs the result into the `--user` remote.
 
     flatpak run chat.zerion.Zerion
 
+To export a single-file bundle for distribution instead of installing:
+    ./build.sh --bundle --no-install
+This writes `Zerion-<version>-<arch>.flatpak`.
+
+## aarch64 (Linux mobile: postmarketOS, Mobian, PureOS, Droidian, FuriOS, ...)
+The engine and UI are architecture-independent, the Tor and pluggable-transport
+binaries for aarch64 ship in the `org.briarproject:tor-linux` / `lyrebird-linux`
+jars, and the aarch64 `monero-wallet-rpc` is bundled under
+`appResources/linux-arm64/`. Building the aarch64 Flatpak is therefore just a
+matter of targeting that architecture.
+
+**On a native aarch64 host** (or an aarch64 CI runner), install the aarch64
+runtime and build:
+
+    flatpak install -y flathub org.freedesktop.Platform//23.08 \
+        org.freedesktop.Sdk//23.08 org.freedesktop.Sdk.Extension.openjdk21//23.08
+    ./build.sh --arch aarch64 --bundle --no-install
+
+**Cross-building aarch64 from an x86_64 host (e.g. WSL2):** the aarch64 build
+commands run under emulation, so install qemu and register binfmt first, then
+install the aarch64 runtime for that architecture:
+
+    sudo apt install qemu-user-static binfmt-support
+    flatpak install -y flathub \
+        org.freedesktop.Platform/aarch64/23.08 \
+        org.freedesktop.Sdk/aarch64/23.08 \
+        org.freedesktop.Sdk.Extension.openjdk21/aarch64/23.08
+    ./build.sh --arch aarch64 --bundle --no-install
+
+Emulated builds are much slower than native ones (the aarch64 JDK runs under
+qemu for the jlink/jpackage step). For routine aarch64 releases, a native
+aarch64 runner is preferable; the emulated path is for producing a bundle
+without dedicated aarch64 hardware.
+
 ## Notes
 - Provide `icons/256/chat.zerion.Zerion.png` (256x256). A placeholder path is
   referenced by the manifest; drop the real app icon there before building.
