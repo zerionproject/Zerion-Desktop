@@ -160,7 +160,11 @@ public class DpapiKeyStrengthener implements KeyStrengthener {
 	}
 
 	private static void writeDurably(File f, byte[] bytes) throws IOException {
-		File tmp = new File(f.getParentFile(), f.getName() + ".tmp");
+		File parent = f.getParentFile();
+		if (parent != null && !parent.isDirectory() && !parent.mkdirs()) {
+			throw new IOException("could not create " + parent.getName());
+		}
+		File tmp = new File(parent, f.getName() + ".tmp");
 		try (FileOutputStream out = new FileOutputStream(tmp)) {
 			out.write(bytes);
 			out.flush();

@@ -102,6 +102,23 @@ public class DpapiKeyStrengthenerTest {
 	}
 
 	@Test
+	public void createsTheKeyDirectoryWhenStoringTheFirstSecret()
+			throws Exception {
+		File missing = new File(keyDir, "profile-key-dir");
+		assertFalse("precondition: the key directory does not exist yet",
+				missing.exists());
+		DpapiKeyStrengthener s = new DpapiKeyStrengthener(missing);
+		byte[] out = s.strengthenKey(key((byte) 4)).getBytes();
+		assertTrue("the key directory is created on first store",
+				missing.isDirectory());
+		assertTrue(new File(missing, "db.strengthen").exists());
+		byte[] again =
+				new DpapiKeyStrengthener(missing).strengthenKey(key((byte) 4))
+						.getBytes();
+		assertArrayEquals("the stored secret is reused afterwards", out, again);
+	}
+
+	@Test
 	public void isInitialisedReflectsSecretAvailability() throws Exception {
 		DpapiKeyStrengthener s = new DpapiKeyStrengthener(keyDir);
 		assertTrue("generatable when no strengthened envelope exists",

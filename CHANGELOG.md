@@ -2,6 +2,15 @@
 
 All notable changes to Zerion Desktop are documented here.
 
+## 1.0.1
+
+### Fixed
+
+- **Windows: creating a new profile failed with "Could not store database key
+  protection".** On a first-run profile the machine-binding secret was written
+  before its key directory existed, so the initial store failed. The directory
+  is now created before the secret is written. Existing profiles were unaffected.
+
 ## 1.0.0
 
 First public release of Zerion Desktop for Windows and Linux.

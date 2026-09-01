@@ -15,7 +15,7 @@ compose.desktop {
 					org.jetbrains.compose.desktop.application.dsl.TargetFormat.Dmg,
 					org.jetbrains.compose.desktop.application.dsl.TargetFormat.Deb)
 			packageName = 'Zerion'
-			packageVersion = '1.0.0'
+			packageVersion = '1.0.1'
 			windows {
 				upgradeUuid = '5f9d1a3e-7b62-4c8a-9e21-3a6d0b4f81c7'
 				menuGroup = 'Zerion'
