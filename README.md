@@ -110,8 +110,17 @@ Download the artifacts for your platform from the
 
 ## Verifying downloads
 
-Every release ships a `SHA256SUMS` file. Verify your download before running it.
-On Linux:
+Every release ships a `SHA256SUMS` file, GPG-signed with the Zerion Project key
+(`SHA256SUMS.asc`). See [SIGNING.md](SIGNING.md) for full instructions and the
+key fingerprint.
+
+Check the signature (after importing [`zerion-signing-key.asc`](zerion-signing-key.asc)):
+
+```
+gpg --verify SHA256SUMS.asc SHA256SUMS
+```
+
+Then confirm your download's hash is the one that was signed. On Linux:
 
 ```
 sha256sum -c SHA256SUMS
@@ -120,7 +129,7 @@ sha256sum -c SHA256SUMS
 On Windows PowerShell:
 
 ```
-Get-FileHash .\Zerion-1.0.0.msi -Algorithm SHA256
+Get-FileHash .\Zerion-1.0.1.msi -Algorithm SHA256
 ```
 
 Then compare the result against `SHA256SUMS`.
